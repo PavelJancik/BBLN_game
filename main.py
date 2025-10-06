@@ -105,6 +105,7 @@ def can_move_right():
     return player_can_move_right and player.sprite.rect.right < end_block.rect.left
  
 npcs.add(NPC_module.NPC(start_block.rect.x+600))
+npcs.add(NPC_module.NPC(start_block.rect.x+300))
 running = True
 while running:
     game_over = engine_module.game_over(player)
@@ -150,8 +151,7 @@ while running:
         homeScreenText.draw(screen)
         homeScreenText.update()
         homeScreenImgs.draw(screen)
-        pg.draw.rect(screen, 'White', (homeScreenImgs.sprites()[selectedName_i].rect.x, homeScreenImgs.sprites()[selectedName_i].rect.y, 200, 100), width=5)
-        # homeScreenImgs.update(can_move_left(), can_move_right())
+        pg.draw.rect(screen, 'White', (homeScreenImgs.sprites()[selectedName_i].rect.x, homeScreenImgs.sprites()[selectedName_i].rect.y, 200, 100), width=5)        
     # game over
     elif game_over:
         screen.fill('Black')        

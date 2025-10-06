@@ -77,11 +77,17 @@ class Player(pg.sprite.Sprite):
         hits = hits_blocks + hits_npcs
 
         self.on_ground = False  # reset před kontrolou
-        for block in hits:
-            # if isinstance(block, NPC_module.NPC): # tohle je kolize pouze shora, kolize z boku je resena v NPC_module
-                # self.health -= block.damage
+        for block in hits:            
             # kolize jen pokud hrac pada dolu a je nad blokem
-            if self.vel_y > 0 and self.rect.bottom - self.vel_y <= block.rect.top:
+            # kolize s NPC
+            if isinstance(block, NPC_module.NPC): 
+                if pg.sprite.collide_rect(self, block.hitbox):
+                    if self.vel_y > 0 and self.rect.bottom - self.vel_y <= block.hitbox.rect.top:
+                        self.rect.bottom = block.hitbox.rect.top
+                        self.vel_y = 0
+                        self.on_ground = True
+            # kolize s blockem
+            elif self.vel_y > 0 and self.rect.bottom - self.vel_y <= block.rect.top:
                 self.rect.bottom = block.rect.top
                 self.vel_y = 0
                 self.on_ground = True

@@ -31,9 +31,12 @@ class NPC(pg.sprite.Sprite):
         self.image = self.walk_frames[self.index]
 
         self.rect = self.image.get_rect(midbottom=(x, GROUND_Y))  
-        # self.rect.width = int(self.rect.width * 0.5) 
-        # self.rect.height = int(self.rect.height * 0.5)        
-        self.hitbox = hitbox_module.Hitbox(self, 50, 50)
+        
+        # self.rect.width = int(self.rect.width * 0.2) 
+        # self.rect.height = int(self.rect.height * 0.5)   
+
+        # self.rect.inflate_ip(-80, 0)      
+        self.hitbox = hitbox_module.Hitbox(self, 60, 90)
       
         # self.rect = self.image.get_bounding_rect()    
         # self.rect.midbottom = (x, GROUND_Y)
@@ -73,8 +76,7 @@ class NPC(pg.sprite.Sprite):
                 self.kill_time = time.time()
             elif time.time() - self.kill_time >= 2:
                 self.kill()        
-        else:
-            old_x = self.rect.centerx     
+        else:  
             # normal moving
             if player_s.rect.centerx < self.rect.centerx:                
                 self.rect.centerx -= 1                          
@@ -93,12 +95,20 @@ class NPC(pg.sprite.Sprite):
             # colisions with other npc
             npc_hits = pg.sprite.spritecollide(self, npcs, False)
             for other in npc_hits:
-                if other is not self:                    
-                    self.rect.centerx = old_x
+                if other is not self:
+                    if pg.sprite.collide_rect(self.hitbox, other.hitbox):           
+                        if other.rect.centerx > self.rect.centerx:
+                            other.rect.centerx += 1
+                            self.rect.centerx -= 1
+                        else:
+                            other.rect.centerx -= 1
+                            self.rect.centerx += 1 
+                        # self.hitbox.update(self)                   
             # move hitbox
             self.hitbox.update(self)
-            # colisions with player from side            
-            if self.hitbox.rect.colliderect(player_s.rect):
+            # colisions with player from side    
+            old_x = self.rect.centerx           
+            if self.hitbox.rect.colliderect(player_s.rect):                   
                 self.animate_attack()
                 self.rect.centerx = old_x   
                 self.hitbox.rect.centerx = old_x 
