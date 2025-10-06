@@ -69,14 +69,22 @@ class NPC(pg.sprite.Sprite):
         self.image = pg.transform.flip(self.dead_frames[self.index], True, False) if self.reverse_image else self.dead_frames[self.index] 
 
     def update(self, move_step, player_s, npcs, can_move_left, can_move_right): 
+        # adjust camera movements
+        keys = pg.key.get_pressed()
+        if keys[pg.K_RIGHT] and can_move_right:
+            self.rect.centerx -= move_step
+        if keys[pg.K_LEFT] and can_move_left:
+            self.rect.centerx += move_step   
         # death
         if self.health < 0:
+            self.player_can_move = [True, True]
             self.animate_death()  
             if not self.kill_time:                
                 self.kill_time = time.time()
             elif time.time() - self.kill_time >= 2:
                 self.kill()        
         else:  
+            old_x = self.rect.centerx 
             # normal moving
             if player_s.rect.centerx < self.rect.centerx:                
                 self.rect.centerx -= 1                          
@@ -86,43 +94,26 @@ class NPC(pg.sprite.Sprite):
                 self.rect.centerx += 1
                 self.reverse_image = False
                 self.animate_walk() 
-            # adjust camera movements
-            keys = pg.key.get_pressed()
-            if keys[pg.K_RIGHT] and can_move_right:
-                self.rect.centerx -= move_step
-            if keys[pg.K_LEFT] and can_move_left:
-                self.rect.centerx += move_step   
-            # colisions with other npc
+            # colisions with other npc             
             npc_hits = pg.sprite.spritecollide(self, npcs, False)
             for other in npc_hits:
                 if other is not self:
                     if pg.sprite.collide_rect(self.hitbox, other.hitbox):           
                         if other.rect.centerx > self.rect.centerx:
-                            other.rect.centerx += 1
+                            # other.rect.centerx += 1
                             self.rect.centerx -= 1
                         else:
-                            other.rect.centerx -= 1
+                            # other.rect.centerx -= 1
                             self.rect.centerx += 1 
                         # self.hitbox.update(self)                   
             # move hitbox
             self.hitbox.update(self)
-            # colisions with player from side    
-            old_x = self.rect.centerx           
+            # colisions with player from side            
             if self.hitbox.rect.colliderect(player_s.rect):                   
                 self.animate_attack()
                 self.rect.centerx = old_x   
-                self.hitbox.rect.centerx = old_x 
+                self.hitbox.rect.centerx = old_x                 
                 player_s.health -= self.damage   
                 if player_s.rect.centerx > self.hitbox.rect.x: self.player_can_move = [False, True]  
                 else: self.player_can_move = [True, False]
             else: self.player_can_move = [True, True]
-            # if self.rect.colliderect(player_s.rect):
-            #     self.animate_attack()
-            #     self.rect.centerx = old_x    
-            #     player_s.health -= self.damage   
-            #     if player_s.rect.centerx > self.rect.x: self.player_can_move = [False, True]  
-            #     else: self.player_can_move = [True, False]
-            # else: self.player_can_move = [True, True]
-           
- 
-                 
