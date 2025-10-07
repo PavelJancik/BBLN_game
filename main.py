@@ -6,6 +6,7 @@ import msg_module
 import NPC_module
 import engine_module
 from config import *
+from NPC_module import NPC_KILLED
 
 # engine
 pg.init()
@@ -97,6 +98,16 @@ for index, name in enumerate(names):
     homeScreenImgs.add(block_module.Block(SCREEN_WIDTH - 400, 1.1*img_h*(1+index), img_h, img_h, 0, f'char_{name}.png'))
     homeScreenText.add( msg_module.Msg(name, SCREEN_WIDTH-250, img_h/2+1.1*img_h*(1+index), 20, 'White'))
 
+# end game screen
+endGameScreenImg = pg.image.load("imgs/homeScreen.jpg").convert() 
+endGameScreenImg = pg.transform.scale(homeScreenBgImg, (SCREEN_WIDTH, SCREEN_HEIGHT))
+endGameScreenText = pg.sprite.Group(
+    msg_module.Msg('You Died! ', SCREEN_WIDTH / 2, line_h*2, 40, 'White'),
+    msg_module.Msg('Hahahaha', SCREEN_WIDTH / 2, line_h*4, 20, 'White'),
+    msg_module.Msg('Wanna play again?', SCREEN_WIDTH / 2, line_h*5, 20, 'White'),    
+    msg_module.Msg('Press Enter to continue', SCREEN_WIDTH / 2, line_h*10, 20, 'White'), 
+)
+
 player_can_move_left = True
 player_can_move_right = True
 def can_move_left():
@@ -130,10 +141,9 @@ while running:
         elif game_over:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_RETURN or event.key == pg.K_KP_ENTER: 
-                    display_home_screen = True
-                    # todo remove player instance and create new
-                    # a vlastne asi u vseho to bude nejjednodusi
-                    # takze vsechno do metod a pak je jen volat ve funkci init_new_game()
+                    display_home_screen = True                    
+                    player = init_player()
+                    npcs.empty()                
         # game is running
         else:     
             if event.type == pg.KEYDOWN: 
@@ -144,6 +154,8 @@ while running:
                 if len(npcs)+2 <= MAX_ZOMBIE_COUNT:
                     npcs.add(NPC_module.NPC(start_block.rect.x-200))
                     npcs.add(NPC_module.NPC(end_block.rect.x+200))
+            if event.type == NPC_KILLED:
+                score += 1                
             
     # home screen
     if display_home_screen:
@@ -154,7 +166,9 @@ while running:
         pg.draw.rect(screen, 'White', (homeScreenImgs.sprites()[selectedName_i].rect.x, homeScreenImgs.sprites()[selectedName_i].rect.y, 200, 100), width=5)        
     # game over
     elif game_over:
-        screen.fill('Black')        
+        screen.blit(endGameScreenImg, (0, 0)) 
+        endGameScreenText.draw(screen)   
+        endGameScreenText.update() 
     # game is running
     else:        
         bottom_layer.draw(screen)
@@ -185,11 +199,6 @@ while running:
         else: player_can_move_left = True
         if any(not z.player_can_move[1] for z in npcs): player_can_move_right = False
         else: player_can_move_right = True
-
-        # for zombie in npcs:        
-        #     if zombie.health <= 0:
-        #         zombie.kill()
-        #         score += 1
 
     pg.display.update()
     clock.tick(60)

@@ -4,42 +4,34 @@ import random
 import time
 import hitbox_module
 
+NPC_KILLED = pg.USEREVENT + 2
 
 class NPC(pg.sprite.Sprite):
     def __init__(self, x):
         super().__init__()   
         sex = 'male' if bool(random.getrandbits(1)) else 'female'
         walk_frames = []        
-        for i in range(1, 10):
+        for i in range(1, 11):
             img = pg.image.load(f"imgs/zombie/{sex}/Walk ({i}).png").convert_alpha()           
             img = pg.transform.scale(img, (3*43,3*52))
             walk_frames.append(img)
         attack_frames = []
-        for i in range(1, 8):
+        for i in range(1, 9):
             img = pg.image.load(f"imgs/zombie/{sex}/Attack ({i}).png").convert_alpha()
             img = pg.transform.scale(img, (3*43,3*52))
             attack_frames.append(img)
         dead_frames = []
-        for i in range(1, 12):
+        for i in range(1, 13):
             img = pg.image.load(f"imgs/zombie/{sex}/Dead ({i}).png").convert_alpha()
-            img = pg.transform.scale(img, (3*43,3*52))
+            img = pg.transform.scale(img, (2.5*68.4, 2.5*62.7))
             dead_frames.append(img)
         self.walk_frames = walk_frames          
         self.attack_frames = attack_frames 
         self.dead_frames = dead_frames 
         self.index = 0
         self.image = self.walk_frames[self.index]
-
-        self.rect = self.image.get_rect(midbottom=(x, GROUND_Y))  
-        
-        # self.rect.width = int(self.rect.width * 0.2) 
-        # self.rect.height = int(self.rect.height * 0.5)   
-
-        # self.rect.inflate_ip(-80, 0)      
+        self.rect = self.image.get_rect(midbottom=(x, GROUND_Y))     
         self.hitbox = hitbox_module.Hitbox(self, 60, 90)
-      
-        # self.rect = self.image.get_bounding_rect()    
-        # self.rect.midbottom = (x, GROUND_Y)
         self.animation_speed = 0.30 
         self.counter = 0
         self.health = 100  
@@ -70,7 +62,7 @@ class NPC(pg.sprite.Sprite):
 
     def update(self, move_step, player_s, npcs, can_move_left, can_move_right): 
         # adjust camera movements
-        keys = pg.key.get_pressed()
+        keys = pg.key.get_pressed()        
         if keys[pg.K_RIGHT] and can_move_right:
             self.rect.centerx -= move_step
         if keys[pg.K_LEFT] and can_move_left:
@@ -81,8 +73,9 @@ class NPC(pg.sprite.Sprite):
             self.animate_death()  
             if not self.kill_time:                
                 self.kill_time = time.time()
+                pg.event.post(pg.event.Event(NPC_KILLED))
             elif time.time() - self.kill_time >= 2:
-                self.kill()        
+                self.kill()                  
         else:  
             old_x = self.rect.centerx 
             # normal moving
@@ -100,12 +93,9 @@ class NPC(pg.sprite.Sprite):
                 if other is not self:
                     if pg.sprite.collide_rect(self.hitbox, other.hitbox):           
                         if other.rect.centerx > self.rect.centerx:
-                            # other.rect.centerx += 1
                             self.rect.centerx -= 1
                         else:
-                            # other.rect.centerx -= 1
-                            self.rect.centerx += 1 
-                        # self.hitbox.update(self)                   
+                            self.rect.centerx += 1                  
             # move hitbox
             self.hitbox.update(self)
             # colisions with player from side            
